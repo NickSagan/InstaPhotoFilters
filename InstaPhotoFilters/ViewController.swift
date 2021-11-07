@@ -44,8 +44,22 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     }
     
     func applyProcessing() {
+        let inputKeys = currentFilter.inputKeys
+        
+        if inputKeys.contains(kCIInputIntensityKey){
+            currentFilter.setValue(slider.value, forKey: kCIInputIntensityKey)
+        }
+        
+        if inputKeys.contains(kCIInputScaleKey){
+            currentFilter.setValue(slider.value * 10, forKey: kCIInputScaleKey)
+        }
+        
+        if inputKeys.contains(kCIInputCenterKey){
+            currentFilter.setValue(CIVector(x: currentImage.size.width / 2, y: currentImage.size.height / 2), forKey: kCIInputCenterKey)
+        }
+        
         guard let outputImage = currentFilter.outputImage else {return}
-        currentFilter.setValue(slider.value, forKey: kCIInputIntensityKey)
+        
         // .extent - is a rectangle that specifies the extent of the image.
         if let cgImage = context.createCGImage(outputImage, from: outputImage.extent) {
             let processedImage = UIImage(cgImage: cgImage)
@@ -54,7 +68,13 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     }
     
     func setFilter(action: UIAlertAction){
-        print(action.title!)
+        guard currentImage != nil else {return}
+        guard let actionTitle = action.title else {return}
+        currentFilter = CIFilter(name: actionTitle)
+        
+        let beginImage = CIImage(image: currentImage)
+        currentFilter.setValue(beginImage, forKey: kCIInputImageKey)
+        applyProcessing()
     }
 
     @IBAction func sliderChanged(_ sender: UISlider) {
@@ -67,7 +87,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         ac.addAction(UIAlertAction(title: "CIGaussianBlur", style: .default, handler: setFilter))
         ac.addAction(UIAlertAction(title: "CIPixellate", style: .default, handler: setFilter))
         ac.addAction(UIAlertAction(title: "CISepiaTone", style: .default, handler: setFilter))
-        ac.addAction(UIAlertAction(title: "CITwirDistortion", style: .default, handler: setFilter))
+        ac.addAction(UIAlertAction(title: "CITwirlDistortion", style: .default, handler: setFilter))
         ac.addAction(UIAlertAction(title: "CIUnsharpMask", style: .default, handler: setFilter))
         ac.addAction(UIAlertAction(title: "CIVignette", style: .default, handler: setFilter))
         ac.addAction(UIAlertAction(title: "Cancel", style: .cancel))
